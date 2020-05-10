@@ -45,11 +45,15 @@ public class RunUI : MonoBehaviour
     }
     void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 100, 20), "Agora: Jogador " + RunUI.currentPlayer);
-        GUI.Label(new Rect(200, 10, 100, 20), "Jogador 1: " + RunUI.player1.Score);
-        GUI.Label(new Rect(300, 10, 100, 20), "Jogador 2:  " + RunUI.player2.Score);
-        GUI.Label(new Rect(500, 10, 300, 20), "Pressione Z para passar a rodada.");
-        GUI.Label(new Rect(10, Screen.height - 30, 100, 20), "Força:  " + RunUI.getCurrentForce());
+
+        GUI.Box(new Rect(10, 10, 120, 30), "Agora: Jogador " + RunUI.currentPlayer);
+        GUI.Box(new Rect(200, 10, 120, 30), "Jogador 1: " + RunUI.player1.Score);
+        GUI.Box(new Rect(300, 10, 120, 30), "Jogador 2:  " + RunUI.player2.Score);
+        GUI.Box(new Rect(10, Screen.height - 30, 100, 30), "Força:  " + RunUI.getCurrentForce());
+
+        GUI.Box(new Rect(Screen.width - 300, 10, 300, 30), "Pressione Z para passar a rodada.");
+
+
     }
 
     public static float getCurrentForce()
@@ -81,8 +85,6 @@ public class RunUI : MonoBehaviour
             }
 
         }
-
-        
-
     }
+
 }
