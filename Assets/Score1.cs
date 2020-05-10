@@ -18,8 +18,8 @@ public class Score1 : MonoBehaviour
         if (other.tag == "PoolBall")
         {
             int x;
-            x = (RunUI.currentPlayer == 1) ? ++RunUI.scoreP1 : RunUI.scoreP1;
-            x = (RunUI.currentPlayer == 2) ? ++RunUI.scoreP2 : RunUI.scoreP2;
+            x = (RunUI.currentPlayer == 1) ? ++RunUI.player1.Score : RunUI.player1.Score;
+            x = (RunUI.currentPlayer == 2) ? ++RunUI.player2.Score : RunUI.player2.Score;
             Destroy(other);
         }
 

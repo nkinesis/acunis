@@ -3,6 +3,9 @@ using UnityEditor;
 
 public class Player
 {
-    float force = 100f;
- 
+    private int score = 0;
+    private float force = 10f;
+
+    public int Score { get => score; set => score = value; }
+    public float Force { get => force; set => force = value; }
 }

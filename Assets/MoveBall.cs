@@ -18,8 +18,7 @@ public class MoveBall : MonoBehaviour
             {
                 var mouseDir = hit.point - player.transform.position;
                 mouseDir = mouseDir.normalized;
-                //mouseDir * forceStrength
-                player.GetComponent<Rigidbody>().AddForce(mouseDir * 10f, ForceMode.Impulse);
+                player.GetComponent<Rigidbody>().AddForce(mouseDir * RunUI.getCurrentForce(), ForceMode.Impulse);
             }
 
         }
