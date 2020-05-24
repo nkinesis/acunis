@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Globalization;
+using UnityEngine.SceneManagement;
 
 public class RunUI : MonoBehaviour
 {
@@ -22,8 +23,31 @@ public class RunUI : MonoBehaviour
 
         // definir listeners
         GameObject.Find("btn_mass").GetComponent<Button>().onClick.AddListener(btnMass);
-        GameObject.Find("btn_gravity").GetComponent<Button>().onClick.AddListener(btnGravity);
-        GameObject.Find("btn_elast").GetComponent<Button>().onClick.AddListener(btnElasticity);        GameObject.Find("btn_gravity").GetComponent<Button>().onClick.AddListener(btnGravity);
+        GameObject.Find("btn_elast").GetComponent<Button>().onClick.AddListener(btnElasticity);
+        GameObject.Find("btn_drag").GetComponent<Button>().onClick.AddListener(btnDrag); 
+        GameObject.Find("btn_stfri").GetComponent<Button>().onClick.AddListener(btnStFri); 
+        GameObject.Find("btn_dinfri").GetComponent<Button>().onClick.AddListener(btnDinFri); 
+        GameObject.Find("btn_angleinc").GetComponent<Button>().onClick.AddListener(btnInc);
+        GameObject.Find("ipt_gravity").GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
+            dropdownGravity(GameObject.Find("ipt_gravity").GetComponent<Dropdown>());
+        });
+        GameObject.Find("btn_restart").GetComponent<Button>().onClick.AddListener(delegate {
+            SceneManager.LoadScene("SampleScene");
+            RunUI.player1 = new Player();
+            RunUI.player2 = new Player();
+            RunUI.currentPlayer = 1;
+            RunUI.inputsBlocked = false;
+            RunUI.isPaused = false;
+            resume();
+        });
+
+        // Definir valores padrão
+        GameObject.Find("ipt_mass").GetComponent<InputField>().text = "1.0";
+        //GameObject.Find("ipt_gravity").GetComponent<InputField>().text = "9.8";
+        GameObject.Find("ipt_elast").GetComponent<InputField>().text = "0.25";
+        GameObject.Find("ipt_drag").GetComponent<InputField>().text = "0.0";
+        GameObject.Find("ipt_stfri").GetComponent<InputField>().text = "0.3";
+        GameObject.Find("ipt_dinfri").GetComponent<InputField>().text = "0.9";
 
         // esconder menu pausa
         RunUI.pauseMenuUI = GameObject.Find("PauseMenu");
@@ -33,33 +57,44 @@ public class RunUI : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown("z"))
-        {
-            switchPlayer();
-        }
-        if (Input.GetKeyDown("q"))
-        {
-            if (RunUI.currentPlayer == 1 && getCurrentForce() < 40)
-            {
-                RunUI.player1.Force += 5;
-            } else if (RunUI.currentPlayer == 2 && getCurrentForce() < 40)
-            {
-                RunUI.player2.Force += 5;
-            }
-        }
-        if (Input.GetKeyDown("w"))
-        {
-            if (RunUI.currentPlayer == 1 && getCurrentForce() > 5)
-            {
-                RunUI.player1.Force -= 5;
-            }
-            else if (RunUI.currentPlayer == 2 && getCurrentForce() > 5)
-            {
-                RunUI.player2.Force -= 5;
-            }
-        }
-
+        // toggle menu pausa
         onPause();
+
+        // checar demais comandos só se o jogo estiver em curso
+        if (!RunUI.isPaused) { 
+            if (Input.GetKeyDown("z")) // passa rodada
+            {
+                switchPlayer();
+            }
+            if (Input.GetKeyDown("q")) // aumenta força
+            {
+                if (RunUI.currentPlayer == 1 && getCurrentForce() < 40)
+                {
+                    RunUI.player1.Force += 5;
+                } else if (RunUI.currentPlayer == 2 && getCurrentForce() < 40)
+                {
+                    RunUI.player2.Force += 5;
+                }
+            }
+            if (Input.GetKeyDown("w")) // diminui força
+            {
+                if (RunUI.currentPlayer == 1 && getCurrentForce() > 5)
+                {
+                    RunUI.player1.Force -= 5;
+                }
+                else if (RunUI.currentPlayer == 2 && getCurrentForce() > 5)
+                {
+                    RunUI.player2.Force -= 5;
+                }
+            }
+            if (Input.GetKeyDown("r")) // reseta bola branca
+            {
+                var cue = GameObject.Find("CueBall");
+                cue.transform.position = new Vector3(12.4f, 3.6f, 11.3f);
+                cue.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                cue.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            }
+        }
     }
 
     void OnGUI()
@@ -69,9 +104,7 @@ public class RunUI : MonoBehaviour
         GUI.Box(new Rect(200, 10, 120, 30), "Jogador 1: " + RunUI.player1.Score);
         GUI.Box(new Rect(300, 10, 120, 30), "Jogador 2:  " + RunUI.player2.Score);
         GUI.Box(new Rect(10, Screen.height - 30, 100, 30), "Força:  " + RunUI.getCurrentForce());
-
         GUI.Box(new Rect(Screen.width - 300, 10, 300, 30), "Pressione Z para passar a rodada.");
-
 
     }
 
@@ -135,6 +168,7 @@ public class RunUI : MonoBehaviour
             }
 
         }
+        print("Mass changed");
     }
 
     public void changeGravity(float newValue)
@@ -156,6 +190,7 @@ public class RunUI : MonoBehaviour
             }
 
         }
+        print("Gravity changed");
     }
 
     public void changeBounciness(float newValue)
@@ -178,8 +213,9 @@ public class RunUI : MonoBehaviour
                 {
                     x.GetComponent<Collider>().material.bounciness = newValue;
                 }
-
+ 
         }
+        print("Bounce changed");
     }
 
     public void changeDynamicFriction(float newValue)
@@ -202,10 +238,11 @@ public class RunUI : MonoBehaviour
                 {
                     x.GetComponent<Collider>().material.dynamicFriction = newValue;
                 }
-
+                x.GetComponent<Collider>().enabled = false;
+                x.GetComponent<Collider>().enabled = true;
         }
+        print("D. Friction changed");
     }
-
 
     public void changeStaticFriction(float newValue)
     {
@@ -227,8 +264,10 @@ public class RunUI : MonoBehaviour
                 {
                     x.GetComponent<Collider>().material.staticFriction = newValue;
                 }
-
+                x.GetComponent<Collider>().enabled = false;
+                x.GetComponent<Collider>().enabled = true;
         }
+        print("S. Friction changed");
     }
 
     public void changeDrag(float newValue)
@@ -257,17 +296,30 @@ public class RunUI : MonoBehaviour
                 }
 
             }
-
         }
+        print("Drag changed");
     }
 
+    public void changeTableInclination(float newValue)
+    {
+        if (newValue < -45)
+        {
+            GameObject.Find("BilliardsTable").transform.Rotate(-45f, 0.0f, 0.0f);
+        } else if (newValue > 45) {
+            GameObject.Find("BilliardsTable").transform.Rotate(45f, 0.0f, 0.0f);
+        } else
+        {
+            GameObject.Find("BilliardsTable").transform.Rotate(newValue, 0.0f, 0.0f);
+        }
+
+    }
 
     // menu pausa
     public void onPause()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (isPaused)
+            if (RunUI.isPaused)
             {
                 isPaused = false;
                 resume();
@@ -281,14 +333,14 @@ public class RunUI : MonoBehaviour
 
     public void resume()
     {
-        print("resume");
+        //print("resume");
         RunUI.pauseMenuUI.SetActive(false);
         Time.timeScale = 1f;
     }
 
     public void pause()
     {
-        print("pause");
+        //print("pause");
         RunUI.pauseMenuUI.SetActive(true);
         Time.timeScale = 0f;
     }
@@ -296,20 +348,90 @@ public class RunUI : MonoBehaviour
     // ações de botões
     public void btnMass()
     {
-        float mass = float.Parse(GameObject.Find("ipt_mass").GetComponent<InputField>().text);
+        float mass = float.Parse(GameObject.Find("ipt_mass").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
         changeMass(mass);
     }
 
     public void btnGravity()
     {
-        float gravity = float.Parse(GameObject.Find("ipt_gravity").GetComponent<InputField>().text);
+        float gravity = float.Parse(GameObject.Find("ipt_gravity").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
         changeGravity(gravity);
     }
+
     public void btnElasticity()
     {
         float elast = float.Parse(GameObject.Find("ipt_elast").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
-        print(GameObject.Find("ipt_elast").GetComponent<InputField>().text);
-        print(elast);
         changeBounciness(elast);
+    }
+
+    public void btnDrag()
+    {
+        float value = float.Parse(GameObject.Find("ipt_drag").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
+        changeDrag(value);
+    }
+
+    public void btnStFri()
+    {
+        float value = float.Parse(GameObject.Find("ipt_dinfri").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
+        changeStaticFriction(value);
+    }
+
+    public void btnDinFri()
+    {
+        float value = float.Parse(GameObject.Find("ipt_stfri").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
+        changeDynamicFriction(value);
+    }
+
+    public void btnInc()
+    {
+        GameObject toggle = GameObject.Find("ipt_dirinc");
+        float value = float.Parse(GameObject.Find("ipt_angleinc").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
+
+        if (toggle.GetComponent<Toggle>().isOn)
+        {
+            value = value * -1;
+        }
+        changeTableInclination(value);
+    }
+
+    public void dropdownGravity(Dropdown change)
+    {
+        switch (change.value)
+        {
+            case 0: //terra
+                Physics.gravity = new Vector3(0, -9.8f, 0);
+                break;
+            case 1: //sol
+                Physics.gravity = new Vector3(0, -274f, 0);
+                break;
+            case 2: //jupiter
+                Physics.gravity = new Vector3(0, -24.9f, 0);
+                break;
+            case 3: //netuno
+                Physics.gravity = new Vector3(0, -11.1f, 0);
+                break;
+            case 4: //saturno
+                Physics.gravity = new Vector3(0, -10.4f, 0);
+                break;
+            case 5: //urano/venus
+                Physics.gravity = new Vector3(0, -8.8f, 0);
+                break;
+            case 6: //marte/mercurio
+                Physics.gravity = new Vector3(0, -3.7f, 0);
+                break;
+            case 7: //lua
+                Physics.gravity = new Vector3(0, -1.6f, 0);
+                break;
+            case 8: //espaço
+                Physics.gravity = new Vector3(0, 0.0f, 0);
+                break;
+            case 9: //raio trator
+                Physics.gravity = new Vector3(0, 0.05f, 0);
+                break;
+            default: //terra
+                Physics.gravity = new Vector3(0, -9.8f, 0);
+                break;
+        }
+        
     }
 }
