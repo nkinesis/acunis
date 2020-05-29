@@ -6,23 +6,21 @@ using System;
 public class MoveBall : MonoBehaviour
 {
     public GameObject player;
-    public Vector3 calc;
+    public float forceStrength = 1f;
 
-    private void Start()
-    {
-        //calc = new Camera();
-    }
     private void Update()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && !RunUI.inputsBlocked && !RunUI.isPaused)
         {
             RaycastHit hit;
+            RunUI.inputsBlocked = true;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100) && hit.transform.gameObject.tag == "Terrain")
             {
                 var mouseDir = hit.point - player.transform.position;
                 mouseDir = mouseDir.normalized;
-                player.GetComponent<Rigidbody>().AddForce(mouseDir * 10);
+                player.GetComponent<Rigidbody>().AddForce(mouseDir * RunUI.getCurrentForce(), ForceMode.Impulse);
             }
+
         }
     }
 
