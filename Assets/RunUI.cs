@@ -11,15 +11,19 @@ public class RunUI : MonoBehaviour
     public static Player player1;
     public static Player player2;
     public static bool inputsBlocked = false;
+    public static bool isGameStarted = false;
     public static bool isPaused = false;
     public static GameObject pauseMenuUI;
-   
+    public static GameObject mainMenuUI;
+
     // métodos principais
     void Start()
     {
         // instanciar objetos player
         RunUI.player1 = new Player();
         RunUI.player2 = new Player();
+        RunUI.pauseMenuUI = GameObject.Find("PauseMenu");
+        RunUI.mainMenuUI = GameObject.Find("MainMenu");
 
         // definir listeners
         GameObject.Find("btn_mass").GetComponent<Button>().onClick.AddListener(btnMass);
@@ -37,9 +41,22 @@ public class RunUI : MonoBehaviour
             RunUI.player2 = new Player();
             RunUI.currentPlayer = 1;
             RunUI.inputsBlocked = false;
+            RunUI.isGameStarted = true;
             RunUI.isPaused = false;
             resume();
         });
+        GameObject.Find("btn_exit").GetComponent<Button>().onClick.AddListener(delegate {
+            SceneManager.LoadScene("SampleScene");
+            RunUI.player1 = new Player();
+            RunUI.player2 = new Player();
+            RunUI.currentPlayer = 1;
+            RunUI.inputsBlocked = false;
+            RunUI.isGameStarted = false;
+            RunUI.isPaused = false;
+            resume();
+        });
+        GameObject.Find("StartBtn").GetComponent<Button>().onClick.AddListener(btnStartGame);
+        GameObject.Find("ExitBtn").GetComponent<Button>().onClick.AddListener(btnExitGame);
 
         // Definir valores padrão
         GameObject.Find("ipt_mass").GetComponent<InputField>().text = "1.0";
@@ -50,10 +67,29 @@ public class RunUI : MonoBehaviour
         GameObject.Find("ipt_dinfri").GetComponent<InputField>().text = "0.9";
 
         // esconder menu pausa
-        RunUI.pauseMenuUI = GameObject.Find("PauseMenu");
-        RunUI.pauseMenuUI.SetActive(false);
+        if (!RunUI.isPaused)
+        {
+            RunUI.pauseMenuUI.SetActive(false);
+        } else
+        {
+            RunUI.pauseMenuUI.SetActive(true);
+        }
 
-   }
+
+        if (!RunUI.isGameStarted)
+        {
+            RunUI.mainMenuUI.SetActive(true);
+        } else {
+            RunUI.mainMenuUI.SetActive(false);
+        }
+
+        var helpSnippets = GameObject.Find("Canvas_Help").GetComponentsInChildren<Transform>();
+        foreach (Transform child in helpSnippets)
+        {
+            child.gameObject.SetActive(false);
+        }
+
+    }
 
     void Update()
     {
@@ -99,13 +135,14 @@ public class RunUI : MonoBehaviour
 
     void OnGUI()
     {
-
-        GUI.Box(new Rect(10, 10, 120, 30), "Agora: Jogador " + RunUI.currentPlayer);
-        GUI.Box(new Rect(200, 10, 120, 30), "Jogador 1: " + RunUI.player1.Score);
-        GUI.Box(new Rect(300, 10, 120, 30), "Jogador 2:  " + RunUI.player2.Score);
-        GUI.Box(new Rect(10, Screen.height - 30, 100, 30), "Força:  " + RunUI.getCurrentForce());
-        GUI.Box(new Rect(Screen.width - 300, 10, 300, 30), "Pressione Z para passar a rodada.");
-
+        if (RunUI.isGameStarted)
+        {
+            GUI.Box(new Rect(10, 10, 120, 30), "Agora: Jogador " + RunUI.currentPlayer);
+            GUI.Box(new Rect(200, 10, 120, 30), "Jogador 1: " + RunUI.player1.Score);
+            GUI.Box(new Rect(300, 10, 120, 30), "Jogador 2:  " + RunUI.player2.Score);
+            GUI.Box(new Rect(10, Screen.height - 30, 100, 30), "Força:  " + RunUI.getCurrentForce());
+            GUI.Box(new Rect(Screen.width - 300, 10, 300, 30), "Pressione Z para passar a rodada.");
+        }
     }
 
     // lógica do jogo
@@ -319,28 +356,38 @@ public class RunUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (RunUI.isPaused)
+            if (RunUI.isGameStarted)
             {
-                isPaused = false;
-                resume();
-            } else
-            {
-                isPaused = true;
-                pause();
+                if (RunUI.isPaused)
+                {
+                    isPaused = false;
+                    resume();
+                }
+                else
+                {
+                    isPaused = true;
+                    pause();
+                }
             }
         }
     }
 
     public void resume()
     {
-        //print("resume");
+        if (RunUI.pauseMenuUI == null)
+        {
+            RunUI.pauseMenuUI = GameObject.Find("PauseMenu");
+        }
         RunUI.pauseMenuUI.SetActive(false);
         Time.timeScale = 1f;
     }
 
     public void pause()
     {
-        //print("pause");
+        if (RunUI.pauseMenuUI == null)
+        {
+            RunUI.pauseMenuUI = GameObject.Find("PauseMenu");
+        }
         RunUI.pauseMenuUI.SetActive(true);
         Time.timeScale = 0f;
     }
@@ -434,4 +481,17 @@ public class RunUI : MonoBehaviour
         }
         
     }
+
+    public void btnStartGame()
+    {
+        RunUI.isGameStarted = true;
+        GameObject.Find("MainMenu").SetActive(false);
+    }
+
+    public void btnExitGame()
+    {
+        RunUI.isGameStarted = false;
+        Application.Quit();
+    }
+
 }

@@ -10,7 +10,7 @@ public class MoveBall : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButton(0) && !RunUI.inputsBlocked && !RunUI.isPaused)
+        if (Input.GetMouseButton(0) && !RunUI.inputsBlocked && !RunUI.isPaused && RunUI.isGameStarted)
         {
             RaycastHit hit;
             RunUI.inputsBlocked = true;
