@@ -4,17 +4,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Globalization;
 using UnityEngine.SceneManagement;
+using System;
 
 public class RunUI : MonoBehaviour
 {
     public static int currentPlayer = 1;
+    public static bool isZeroGravity = false;
     public static Player player1;
     public static Player player2;
     public static bool inputsBlocked = false;
     public static bool isGameStarted = false;
     public static bool isPaused = false;
-    public static GameObject pauseMenuUI;
-    public static GameObject mainMenuUI;
+    public static bool isHelpOpen = false;
+    public static GameObject pauseMenuUI, mainMenuUI, toggleMusic, audioMain;
+    public static GameObject tm, te, td, tsf, tdf, tai, tdi, tg, inst, win1, win2;
+    public static int currentHelpPanel = 0;
+    private static bool zeroGravityMusic = false;
 
     // métodos principais
     void Start()
@@ -24,8 +29,22 @@ public class RunUI : MonoBehaviour
         RunUI.player2 = new Player();
         RunUI.pauseMenuUI = GameObject.Find("PauseMenu");
         RunUI.mainMenuUI = GameObject.Find("MainMenu");
+        RunUI.toggleMusic = GameObject.Find("ipt_music");
+        RunUI.audioMain = GameObject.Find("Audio_Main");
 
-        // definir listeners
+        RunUI.tm = GameObject.Find("text_mass");
+        RunUI.te = GameObject.Find("text_bounce");
+        RunUI.td = GameObject.Find("text_drag");
+        RunUI.tsf = GameObject.Find("text_stfri");
+        RunUI.tdf = GameObject.Find("text_dinfri");
+        RunUI.tai = GameObject.Find("text_angleinc");
+        RunUI.tdi = GameObject.Find("text_dirinc");
+        RunUI.tg = GameObject.Find("text_gravity");
+        RunUI.inst = GameObject.Find("text_control_ref");
+        RunUI.win1 = GameObject.Find("text_win_p1");
+        RunUI.win2 = GameObject.Find("text_win_p2");
+
+        // definir listeners (opções)
         GameObject.Find("btn_mass").GetComponent<Button>().onClick.AddListener(btnMass);
         GameObject.Find("btn_elast").GetComponent<Button>().onClick.AddListener(btnElasticity);
         GameObject.Find("btn_drag").GetComponent<Button>().onClick.AddListener(btnDrag); 
@@ -35,32 +54,44 @@ public class RunUI : MonoBehaviour
         GameObject.Find("ipt_gravity").GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
             dropdownGravity(GameObject.Find("ipt_gravity").GetComponent<Dropdown>());
         });
-        GameObject.Find("btn_restart").GetComponent<Button>().onClick.AddListener(delegate {
-            SceneManager.LoadScene("SampleScene");
-            RunUI.player1 = new Player();
-            RunUI.player2 = new Player();
-            RunUI.currentPlayer = 1;
-            RunUI.inputsBlocked = false;
-            RunUI.isGameStarted = true;
-            RunUI.isPaused = false;
-            resume();
-        });
-        GameObject.Find("btn_exit").GetComponent<Button>().onClick.AddListener(delegate {
-            SceneManager.LoadScene("SampleScene");
-            RunUI.player1 = new Player();
-            RunUI.player2 = new Player();
-            RunUI.currentPlayer = 1;
-            RunUI.inputsBlocked = false;
-            RunUI.isGameStarted = false;
-            RunUI.isPaused = false;
-            resume();
-        });
+        GameObject.Find("btn_restart").GetComponent<Button>().onClick.AddListener(restartMatch);
+        GameObject.Find("btn_exit").GetComponent<Button>().onClick.AddListener(quitMatch);
         GameObject.Find("StartBtn").GetComponent<Button>().onClick.AddListener(btnStartGame);
         GameObject.Find("ExitBtn").GetComponent<Button>().onClick.AddListener(btnExitGame);
 
+        // definir listeners (ajuda)
+        GameObject.Find("btn_help_mass").GetComponent<Button>().onClick.AddListener(btnHelpMass);
+        GameObject.Find("btn_help_elast").GetComponent<Button>().onClick.AddListener(btnHelpElasticity);
+        GameObject.Find("btn_help_drag").GetComponent<Button>().onClick.AddListener(btnHelpDrag);
+        GameObject.Find("btn_help_stfri").GetComponent<Button>().onClick.AddListener(btnHelpStFri);
+        GameObject.Find("btn_help_dinfri").GetComponent<Button>().onClick.AddListener(btnHelpDinFri);
+        GameObject.Find("btn_help_angleinc").GetComponent<Button>().onClick.AddListener(btnHelpInc);
+        GameObject.Find("btn_help_gravity").GetComponent<Button>().onClick.AddListener(btnHelpGravity);
+        GameObject.Find("btn_help_dirinc").GetComponent<Button>().onClick.AddListener(btnHelpDirinc);
+        GameObject.Find("btn_instructions").GetComponent<Button>().onClick.AddListener(btnInstructions);
+        GameObject.Find("tm_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("te_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("td_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("tsf_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("tdf_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("tai_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("tdi_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("tg_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("inst_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("p1_replay").GetComponent<Button>().onClick.AddListener(restartMatch);
+        GameObject.Find("p1_quit").GetComponent<Button>().onClick.AddListener(quitMatch);
+        GameObject.Find("p2_replay").GetComponent<Button>().onClick.AddListener(restartMatch);
+        GameObject.Find("p2_quit").GetComponent<Button>().onClick.AddListener(quitMatch);
+        GameObject.Find("tm_info").GetComponent<Button>().onClick.AddListener(btnTmInfo);
+        GameObject.Find("te_info").GetComponent<Button>().onClick.AddListener(btnTeInfo);
+        GameObject.Find("td_info").GetComponent<Button>().onClick.AddListener(btnTdInfo);
+        GameObject.Find("tsf_info").GetComponent<Button>().onClick.AddListener(btnTsfInfo);
+        GameObject.Find("tdf_info").GetComponent<Button>().onClick.AddListener(btnTdfInfo);
+        GameObject.Find("tdi_info").GetComponent<Button>().onClick.AddListener(btnTdiInfo);
+        GameObject.Find("tg_info").GetComponent<Button>().onClick.AddListener(btnTgInfo);
+
         // Definir valores padrão
         GameObject.Find("ipt_mass").GetComponent<InputField>().text = "1.0";
-        //GameObject.Find("ipt_gravity").GetComponent<InputField>().text = "9.8";
         GameObject.Find("ipt_elast").GetComponent<InputField>().text = "0.25";
         GameObject.Find("ipt_drag").GetComponent<InputField>().text = "0.0";
         GameObject.Find("ipt_stfri").GetComponent<InputField>().text = "0.3";
@@ -75,20 +106,43 @@ public class RunUI : MonoBehaviour
             RunUI.pauseMenuUI.SetActive(true);
         }
 
-
         if (!RunUI.isGameStarted)
         {
             RunUI.mainMenuUI.SetActive(true);
         } else {
             RunUI.mainMenuUI.SetActive(false);
         }
+        RunUI.win1.SetActive(false);
+        RunUI.win2.SetActive(false);
 
-        var helpSnippets = GameObject.Find("Canvas_Help").GetComponentsInChildren<Transform>();
-        foreach (Transform child in helpSnippets)
-        {
-            child.gameObject.SetActive(false);
-        }
+        closeAllHelp();
 
+    }
+
+    private void quitMatch()
+    {
+        SceneManager.LoadScene("SampleScene");
+        RunUI.player1 = new Player();
+        RunUI.player2 = new Player();
+        RunUI.currentPlayer = 1;
+        RunUI.inputsBlocked = false;
+        RunUI.isGameStarted = false;
+        RunUI.isHelpOpen = false;
+        RunUI.isPaused = false;
+        resume();
+    }
+
+    private void restartMatch()
+    {
+        SceneManager.LoadScene("SampleScene");
+        RunUI.player1 = new Player();
+        RunUI.player2 = new Player();
+        RunUI.currentPlayer = 1;
+        RunUI.inputsBlocked = false;
+        RunUI.isGameStarted = true;
+        RunUI.isHelpOpen = false;
+        RunUI.isPaused = false;
+        resume();
     }
 
     void Update()
@@ -131,17 +185,51 @@ public class RunUI : MonoBehaviour
                 cue.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
             }
         }
+
+        if (RunUI.isZeroGravity && RunUI.audioMain.GetComponent<AudioSource>().clip.name == "acunis_theme")
+        {
+            RunUI.audioMain.GetComponent<AudioSource>().Stop();
+            RunUI.audioMain.GetComponent<AudioSource>().clip = Resources.Load<AudioClip>("blauen");
+            RunUI.audioMain.GetComponent<AudioSource>().Play();
+            print(RunUI.audioMain.GetComponent<AudioSource>().clip);
+        } else
+        {
+            if (!RunUI.isZeroGravity && RunUI.audioMain.GetComponent<AudioSource>().clip.name == "blauen")
+            {
+                RunUI.audioMain.GetComponent<AudioSource>().Stop();
+                RunUI.audioMain.GetComponent<AudioSource>().clip = Resources.Load<AudioClip>("acunis_theme");
+                RunUI.audioMain.GetComponent<AudioSource>().Play();
+                RunUI.zeroGravityMusic = false;
+            }
+
+            if (!RunUI.toggleMusic.GetComponent<Toggle>().isOn)
+            {
+                RunUI.audioMain.GetComponent<AudioSource>().Stop();
+                print("stop music");
+            } else if (!RunUI.audioMain.GetComponent<AudioSource>().isPlaying
+              && RunUI.toggleMusic.GetComponent<Toggle>().isOn)
+            {
+                RunUI.audioMain.GetComponent<AudioSource>().Play();
+                print("play music");
+            }
+        }
+        
     }
 
     void OnGUI()
     {
-        if (RunUI.isGameStarted)
+        if (RunUI.isGameStarted && !RunUI.isHelpOpen)
         {
             GUI.Box(new Rect(10, 10, 120, 30), "Agora: Jogador " + RunUI.currentPlayer);
             GUI.Box(new Rect(200, 10, 120, 30), "Jogador 1: " + RunUI.player1.Score);
             GUI.Box(new Rect(300, 10, 120, 30), "Jogador 2:  " + RunUI.player2.Score);
-            GUI.Box(new Rect(10, Screen.height - 30, 100, 30), "Força:  " + RunUI.getCurrentForce());
-            GUI.Box(new Rect(Screen.width - 300, 10, 300, 30), "Pressione Z para passar a rodada.");
+
+            if (!RunUI.isPaused)
+            {
+                GUI.Box(new Rect(10, Screen.height - 30, 100, 30), "Força:  " + RunUI.getCurrentForce());
+                GUI.Box(new Rect(Screen.width - 300, 10, 300, 30), "Pressione Z para passar a rodada.");
+            }
+
         }
     }
 
@@ -358,7 +446,10 @@ public class RunUI : MonoBehaviour
         {
             if (RunUI.isGameStarted)
             {
-                if (RunUI.isPaused)
+                if (RunUI.isHelpOpen)
+                {
+                    closeAllHelp();
+                } else if (RunUI.isPaused)
                 {
                     isPaused = false;
                     resume();
@@ -393,6 +484,22 @@ public class RunUI : MonoBehaviour
     }
 
     // ações de botões
+    private void closeAllHelp()
+    {
+        RunUI.tm.SetActive(false);
+        RunUI.te.SetActive(false);
+        RunUI.td.SetActive(false);
+        RunUI.tsf.SetActive(false);
+        RunUI.tdf.SetActive(false);
+        RunUI.tdi.SetActive(false);
+        RunUI.tai.SetActive(false);
+        RunUI.tg.SetActive(false);
+        RunUI.inst.SetActive(false);
+        RunUI.win1.SetActive(false);
+        RunUI.win2.SetActive(false);
+        RunUI.isHelpOpen = false;
+    }
+
     public void btnMass()
     {
         float mass = float.Parse(GameObject.Find("ipt_mass").GetComponent<InputField>().text, CultureInfo.InvariantCulture.NumberFormat);
@@ -479,6 +586,14 @@ public class RunUI : MonoBehaviour
                 Physics.gravity = new Vector3(0, -9.8f, 0);
                 break;
         }
+
+        if (change.value == 8 || change.value == 9)
+        {
+            RunUI.isZeroGravity = true;
+        } else
+        {
+            RunUI.isZeroGravity = false;
+        }
         
     }
 
@@ -493,5 +608,98 @@ public class RunUI : MonoBehaviour
         RunUI.isGameStarted = false;
         Application.Quit();
     }
+
+    private void btnHelpMass()
+    {
+        RunUI.tm.SetActive(RunUI.tm.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpInc()
+    {
+        RunUI.tai.SetActive(RunUI.tai.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpDinFri()
+    {
+        RunUI.tdf.SetActive(RunUI.tdf.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpStFri()
+    {
+        RunUI.tsf.SetActive(RunUI.tsf.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpDrag()
+    {
+        RunUI.td.SetActive(RunUI.td.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpElasticity()
+    {
+        RunUI.te.SetActive(RunUI.te.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpGravity()
+    {
+        RunUI.tg.SetActive(RunUI.tg.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnHelpDirinc()
+    {
+        RunUI.tdi.SetActive(RunUI.tdi.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+    private void btnInstructions()
+    {
+        RunUI.inst.SetActive(RunUI.inst.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
+
+    private void btnTgInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/o-que-e/fisica/o-que-e-gravidade.htm");
+    }
+
+    private void btnTdiInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/fisica/nocoes-importantes.htm");
+    }
+
+    private void btnTdfInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/fisica/forca-atrito.htm");
+    }
+
+    private void btnTsfInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/fisica/forca-atrito.htm");
+    }
+
+    private void btnTdInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/fisica/forca-resistencia-ar.htm");
+        Application.OpenURL("https://www.portalsaofrancisco.com.br/fisica/resistencia-do-ar");
+    }
+
+    private void btnTeInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/quimica/propriedades-materia.htm");
+    }
+
+    private void btnTmInfo()
+    {
+        Application.OpenURL("https://brasilescola.uol.com.br/o-que-e/fisica/o-que-e-massa.htm");
+    }
+
+
 
 }
