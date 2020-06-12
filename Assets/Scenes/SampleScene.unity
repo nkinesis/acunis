@@ -3682,7 +3682,8 @@ MonoBehaviour:
     gravitacional \xE9 diretamente proporcional ao produto das massas e inversamente
     proporcional ao quadrado da dist\xE2ncia que separa os dois corpos. O valor da
     gravidade depende da massa e do tamanho de cada planeta, sat\xE9lite natural,
-    estrela etc. "
+    estrela etc. Ao alterar esse valor, voc\xEA altera n\xE3o a massa, mas o peso
+    (produto da massa pela gravidade) das bolinhas."
 --- !u!222 &380899111
 CanvasRenderer:
   m_ObjectHideFlags: 0
