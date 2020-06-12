@@ -17,7 +17,7 @@ public class RunUI : MonoBehaviour
     public static bool isPaused = false;
     public static bool isHelpOpen = false;
     public static GameObject pauseMenuUI, mainMenuUI, toggleMusic, audioMain;
-    public static GameObject tm, te, td, tsf, tdf, tai, tdi, tg, inst, win1, win2;
+    public static GameObject tm, te, td, tsf, tdf, tai, tdi, tg, inst, win1, win2, crd;
     public static int currentHelpPanel = 0;
     private static bool zeroGravityMusic = false;
 
@@ -43,6 +43,7 @@ public class RunUI : MonoBehaviour
         RunUI.inst = GameObject.Find("text_control_ref");
         RunUI.win1 = GameObject.Find("text_win_p1");
         RunUI.win2 = GameObject.Find("text_win_p2");
+        RunUI.crd = GameObject.Find("text_credits");
 
         // definir listeners (opções)
         GameObject.Find("btn_mass").GetComponent<Button>().onClick.AddListener(btnMass);
@@ -58,6 +59,7 @@ public class RunUI : MonoBehaviour
         GameObject.Find("btn_exit").GetComponent<Button>().onClick.AddListener(quitMatch);
         GameObject.Find("StartBtn").GetComponent<Button>().onClick.AddListener(btnStartGame);
         GameObject.Find("ExitBtn").GetComponent<Button>().onClick.AddListener(btnExitGame);
+        GameObject.Find("CreditsBtn").GetComponent<Button>().onClick.AddListener(btnCreditsGame);
 
         // definir listeners (ajuda)
         GameObject.Find("btn_help_mass").GetComponent<Button>().onClick.AddListener(btnHelpMass);
@@ -78,6 +80,7 @@ public class RunUI : MonoBehaviour
         GameObject.Find("tdi_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
         GameObject.Find("tg_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
         GameObject.Find("inst_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
+        GameObject.Find("credits_close").GetComponent<Button>().onClick.AddListener(closeAllHelp);
         GameObject.Find("p1_replay").GetComponent<Button>().onClick.AddListener(restartMatch);
         GameObject.Find("p1_quit").GetComponent<Button>().onClick.AddListener(quitMatch);
         GameObject.Find("p2_replay").GetComponent<Button>().onClick.AddListener(restartMatch);
@@ -114,6 +117,7 @@ public class RunUI : MonoBehaviour
         }
         RunUI.win1.SetActive(false);
         RunUI.win2.SetActive(false);
+        RunUI.crd.SetActive(false);
 
         closeAllHelp();
 
@@ -497,6 +501,7 @@ public class RunUI : MonoBehaviour
         RunUI.inst.SetActive(false);
         RunUI.win1.SetActive(false);
         RunUI.win2.SetActive(false);
+        RunUI.crd.SetActive(false);
         RunUI.isHelpOpen = false;
     }
 
@@ -662,6 +667,13 @@ public class RunUI : MonoBehaviour
         RunUI.inst.SetActive(RunUI.inst.activeSelf ? false : true);
         RunUI.isHelpOpen = true;
     }
+
+    private void btnCreditsGame()
+    {
+        RunUI.crd.SetActive(RunUI.crd.activeSelf ? false : true);
+        RunUI.isHelpOpen = true;
+    }
+
 
 
     private void btnTgInfo()
