@@ -23,14 +23,15 @@ public class Score1 : MonoBehaviour
             Destroy(other);
 
             // se um dos jogadores chegar a 8 pontos, ganha o jogo
-            if (RunUI.player1.Score >= 1)
+            int limit_points = 8;
+            if (RunUI.player1.Score >= limit_points)
             {
                 RunUI.isPaused = true;
                 RunUI.win1.SetActive(true);
                 RunUI.isHelpOpen = true;
                 Time.timeScale = 0f;
                 print("p1 wins");
-            } else if (RunUI.player2.Score >= 1) { 
+            } else if (RunUI.player2.Score >= limit_points) { 
                 RunUI.isPaused = true;
                 RunUI.win2.SetActive(true);
                 RunUI.isHelpOpen = true;
