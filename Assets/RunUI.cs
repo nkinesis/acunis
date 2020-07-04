@@ -190,7 +190,7 @@ public class RunUI : MonoBehaviour
             }
         }
 
-        if (RunUI.isZeroGravity && RunUI.audioMain.GetComponent<AudioSource>().clip.name == "acunis_theme")
+        if (RunUI.isZeroGravity && RunUI.audioMain.GetComponent<AudioSource>().clip.name == "acunis_theme_hi")
         {
             RunUI.audioMain.GetComponent<AudioSource>().Stop();
             RunUI.audioMain.GetComponent<AudioSource>().clip = Resources.Load<AudioClip>("blauen");
@@ -201,7 +201,7 @@ public class RunUI : MonoBehaviour
             if (!RunUI.isZeroGravity && RunUI.audioMain.GetComponent<AudioSource>().clip.name == "blauen")
             {
                 RunUI.audioMain.GetComponent<AudioSource>().Stop();
-                RunUI.audioMain.GetComponent<AudioSource>().clip = Resources.Load<AudioClip>("acunis_theme");
+                RunUI.audioMain.GetComponent<AudioSource>().clip = Resources.Load<AudioClip>("acunis_theme_hi");
                 RunUI.audioMain.GetComponent<AudioSource>().Play();
                 RunUI.zeroGravityMusic = false;
             }
